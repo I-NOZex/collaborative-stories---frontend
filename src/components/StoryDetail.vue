@@ -145,17 +145,31 @@ export default {
     methods : {
 
         validate: async function(){
-            const threshold = 0.05;
+            const threshold = 0.10;
             const sequenceWords = this.newSequence
                 .replace(/[^a-zA-Z]/g, " ")
+                .replace(/\s{2,}/g, " ")
                 .toLowerCase()
                 .split(' ');
 
+            if (sequenceWords.length <= 10) return false;
+            
             const response = await axios.get(`https://raw.githubusercontent.com/dwyl/english-words/master/words_dictionary.json`);
             const wordList = Object.keys(response.data);
 
             let unknownWords = [];
-            const isValid = sequenceWords.every(word => {
+            let longestWord = 0;
+            //let nrChanges = 0;
+            let isValid = false;
+
+
+            isValid = sequenceWords.every(word => {
+                if(word.length > longestWord){
+                    longestWord = word.length;
+                    //nrChanges++;
+                }
+
+
                 if(word == "" || wordList.indexOf(word) !== -1) {
                     return true;
                 } else {
@@ -168,8 +182,25 @@ export default {
                 return true;
             })
 
+            console.info(isValid ? 'not troll' : 'is troll')
+
+            if(isValid){
+                /* if( nrChanges <= (sequenceWords.length * threshold) ){
+                    console.info(`not enough changes `)
+                    isValid = false;
+                } */
+                // see: http://www.wolframalpha.com/input/?i=average+english+word+length
+                if( longestWord <= 5 ){
+                    console.info(`too much short words `)
+                    isValid = false;
+                }                
+            }
+
+
             console.info(`total unknown words: ${unknownWords.length}`)
             console.info(`threshold unknown words: ${(sequenceWords.length * threshold) }`)
+            console.info(`longest word : ${(longestWord) }`)
+            //console.info(`nr changes : ${(nrChanges) }`)
             console.info(isValid ? 'not troll' : 'is troll' )
 
             return isValid;
@@ -186,15 +217,14 @@ export default {
             await axios({
                 url: "http://192.168.0.40:1337/storyblock",
                 method: "post",
+                timeout: 5000,
                 data: data
             }).then(response => {
-                if(response.status < 400){
                     this.$alertify.success("Sequence added!")
                     this.storyBlocks.push(response.data)
-                } else {
-                    this.$alertify.error("Error")
-                }
-            })
+            }).catch(error => {
+                this.$alertify.error("Error")
+            });
         },
 
         addSequence: function(){
@@ -233,14 +263,14 @@ export default {
                         }
 
                         storyblocks(where: {storydefinition:"`+this.$route.params.id+`"}, sort: "order") {
-                                _id
-                                storyBody
-                                createdAt
-                                order
-                                likes
-                                user {
-                                    username
-                                }
+                            _id
+                            storyBody
+                            createdAt
+                            order
+                            likes
+                            user {
+                                username
+                            }
                         }
                     }
                 `
