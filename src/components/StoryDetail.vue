@@ -98,8 +98,8 @@
                         <a is="sui-comment-author">{{'Username'}}</a>
                         <sui-comment-text>
                             <sui-segment stacked="tall">
-                                <textarea placeholder="Let your imagination run wild..."></textarea>
-                                <div is="sui-button" attached="bottom" content="Add Reply" icon="edit" primary v-click="newSequence" />
+                                <textarea placeholder="Let your imagination run wild..." v-model="newSequence" ></textarea>
+                                <div is="sui-button" attached="bottom" content="Add Reply" icon="edit" primary v-on:click="addSequence"/>
                             </sui-segment>
                         </sui-comment-text>
                         <sui-divider hidden/>
@@ -125,7 +125,8 @@ export default {
     data() {
         return {
             story: {},
-            storyBlocks: {},
+            storyBlocks: [],
+            newSequence: '',
             errors: []
         };
     },
@@ -138,62 +139,75 @@ export default {
             if(!Array.isArray(arr)) return [];
             if(arr.length < 1) return [];
             return arr[0].storyBody;
-        }
+        }     
     },
 
     methods : {
 
-        buildLookupTable: function(text) {
-            text = text.toLowerCase();
-            var LUT = {minLen: 1, maxLen: 0};
-            var rxWord = /\w+/gm;
-            for (var match; match = rxWord.exec(text); ) {
-                var word = match[0];
-                var wordLen = word.length;
-                if (wordLen > LUT.maxLen)
-                    LUT.maxLen = wordLen;
+        validate: async function(){
+            const threshold = 0.05;
+            const sequenceWords = this.newSequence
+                .replace(/[^a-zA-Z]/g, " ")
+                .toLowerCase()
+                .split(' ');
 
-                var fringeHub = LUT[wordLen];
-                if (!fringeHub)
-                    fringeHub = LUT[wordLen] = {};
+            const response = await axios.get(`https://raw.githubusercontent.com/dwyl/english-words/master/words_dictionary.json`);
+            const wordList = Object.keys(response.data);
 
-                var fringe = word[0] + word.slice(-1);
-                var words = fringeHub[fringe];
-                if (!words)
-                    words = fringeHub[fringe] = new Set();
-                words.add(word);
+            let unknownWords = [];
+            const isValid = sequenceWords.every(word => {
+                if(word == "" || wordList.indexOf(word) !== -1) {
+                    return true;
+                } else {
+                    unknownWords.push(word);
+                }
+                
+                if( unknownWords.length >= (sequenceWords.length * threshold) ){
+                    return false;
+                }
+                return true;
+            })
+
+            console.info(`total unknown words: ${unknownWords.length}`)
+            console.info(`threshold unknown words: ${(sequenceWords.length * threshold) }`)
+            console.info(isValid ? 'not troll' : 'is troll' )
+
+            return isValid;
+        },
+
+        submitSequence: async function(){
+
+            const data = {
+                storyBody: this.newSequence,
+                order: this.storyBlocks.length - 1,
+                storydefinition: this.story._id
             }
 
-            // Fix the dictionary a bit: remove all 1-letter nonwords (except I and A)
-            LUT[1] = LUT[1] ? {aa: LUT[1].aa, ii: LUT[1].ii} : undefined;
-            return LUT;
+            await axios({
+                url: "http://192.168.0.40:1337/storyblock",
+                method: "post",
+                data: data
+            }).then(response => {
+                if(response.status < 400){
+                    this.$alertify.success("Sequence added!")
+                    this.storyBlocks.push(response.data)
+                } else {
+                    this.$alertify.error("Error")
+                }
+            })
         },
-        
 
-        newSequence: function(){
-
-            axios.get(`https://raw.githubusercontent.com/Icepickle/wordlist/master/words2.txt`)
-            .then(buildLookupTable)
-            .then(lut => {
-                console.log(lut)
-            });
-/* 
-            try {
-                const response = axios({
-                    url: "http://192.168.0.40:1337/graphql",
-                    //url: "http://localhost:1337/storyblocks",
-                    method: "post",
-                    data: {
-                        
+        addSequence: function(){
+            this.validate()
+                .then(isValid => {
+                    if (!isValid){
+                        //trow error
+                        alert('get a life your troll')
+                    } else {
+                        this.submitSequence();
                     }
-                });
-                this.$alertify.alert("This is alert", () =>
-                this.$alertify.warning("alert is closed"))
-                // this.story = response.data.data.storydefinition;
-                // this.storyBlocks = response.data.data.storyblocks;
-            } catch (e) {
-                this.errors.push(e)
-            }    */         
+
+                })
         }
     },
     
@@ -202,8 +216,8 @@ export default {
         
         try {
             const response = await axios({
-                //url: "http://192.168.0.40:1337/graphql",
-                url: "http://localhost:1337/graphql",
+                url: "http://192.168.0.40:1337/graphql",
+                //url: "http://localhost:1337/graphql",
                 method: "post",
                 data: {
                     query: `
