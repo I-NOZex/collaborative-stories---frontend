@@ -17,7 +17,7 @@
 
                         <sui-label attached="bottom right" image color="teal">
                             <small>A story started by:</small>
-                            {{story.user ? story.user.username : '...'}}
+                            {{story.user ? story.user.username : 'Guest'}}
                             <sui-label-detail>{{story.createdAt | timeAgo}}</sui-label-detail>
                         </sui-label>
                     </div>
@@ -35,7 +35,7 @@
         </sui-grid-row>
         <sui-grid-row>
             <sui-grid-column :width="8">
-                <sui-button basic color="red" content="Like" icon="heart" size="mini">
+                <sui-button basic color="red" content="Like" icon="heart" size="mini" disabled>
                     <a
                         is="sui-label"
                         slot="label"
@@ -46,19 +46,7 @@
                         {{story.likes || 0}}
                     </a>
                 </sui-button>
-
-                <sui-button basic color="blue" content="Share" icon="facebook" size="mini">
-                    <a
-                        is="sui-label"
-                        slot="label"
-                        basic
-                        color="blue"
-                        pointing="left"
-                    >
-                        1,048
-                    </a>
-                </sui-button>
-            </sui-grid-column :width="8">
+            </sui-grid-column>
         </sui-grid-row>
     </sui-grid>
 
@@ -79,14 +67,6 @@
                         </sui-segment>
                     </sui-comment-text>
 
-                    <!-- <sui-comment-actions>
-                        <sui-comment-action>
-                            <sui-icon name="heart" color="red"/> You and 1234 others like this
-                        </sui-comment-action>
-                        <sui-comment-action>
-                            <sui-icon name="facebook outline" /> Share
-                        </sui-comment-action>
-                    </sui-comment-actions> -->
             </sui-comment-content>
             <sui-divider hidden/>
         </sui-comment>
@@ -159,14 +139,12 @@ export default {
 
             let unknownWords = [];
             let longestWord = 0;
-            //let nrChanges = 0;
             let isValid = false;
 
 
             isValid = sequenceWords.every(word => {
                 if(word.length > longestWord){
                     longestWord = word.length;
-                    //nrChanges++;
                 }
 
 
@@ -182,13 +160,8 @@ export default {
                 return true;
             })
 
-            console.info(isValid ? 'not troll' : 'is troll')
 
             if(isValid){
-                /* if( nrChanges <= (sequenceWords.length * threshold) ){
-                    console.info(`not enough changes `)
-                    isValid = false;
-                } */
                 // see: http://www.wolframalpha.com/input/?i=average+english+word+length
                 if( longestWord <= 5 ){
                     console.info(`too much short words `)
@@ -200,8 +173,7 @@ export default {
             console.info(`total unknown words: ${unknownWords.length}`)
             console.info(`threshold unknown words: ${(sequenceWords.length * threshold) }`)
             console.info(`longest word : ${(longestWord) }`)
-            //console.info(`nr changes : ${(nrChanges) }`)
-            console.info(isValid ? 'not troll' : 'is troll' )
+            console.info(isValid ? 'valid' : 'invalid' )
 
             return isValid;
         },
@@ -215,7 +187,7 @@ export default {
             }
 
             await axios({
-                url: "http://192.168.0.40:1337/storyblock",
+                url: "http://localhost:1337/storyblock",
                 method: "post",
                 timeout: 5000,
                 data: data
@@ -232,7 +204,7 @@ export default {
                 .then(isValid => {
                     if (!isValid){
                         //trow error
-                        alert('get a life your troll')
+                        alert('The text doesn\'t respect our rules. Change it and try again')
                     } else {
                         this.submitSequence();
                     }
@@ -246,8 +218,7 @@ export default {
         
         try {
             const response = await axios({
-                url: "http://192.168.0.40:1337/graphql",
-                //url: "http://localhost:1337/graphql",
+                url: "http://localhost:1337/graphql",
                 method: "post",
                 data: {
                     query: `
@@ -281,25 +252,6 @@ export default {
         } catch (e) {
             this.errors.push(e)
         }
-/*             .then(response => {
-                // JSON responses are automatically parsed.
-                this.story = response.data.data.storydefinition;
-                this.storyBlocks = response.data.data.storyblocks;
-                console.log(this.story)
-                console.log(this.storyBlocks)
-            })
-            .catch(e => {
-                this.errors.push(e);
-            }); */
-
-        // async / await version (created() becomes async created())
-        //
-        // try {
-        //   const response = await axios.get(`http://jsonplaceholder.typicode.com/posts`)
-        //   this.posts = response.data
-        // } catch (e) {
-        //   this.errors.push(e)
-        // }
     }
 };
 </script>

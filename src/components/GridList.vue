@@ -57,8 +57,7 @@ export default {
     // Fetches posts when the component is created.
     created() {
         axios({
-                url: "http://192.168.0.40:1337/graphql",
-                //url: "http://localhost:1337/graphql",
+                url: "http://localhost:1337/graphql",
                 method: "post",
                 data: {
                     query: `
@@ -81,55 +80,45 @@ export default {
                     }
                 `
                 }
-            })
-            .then(response => {
-                // JSON responses are automatically parsed.
-                this.stories = response.data.data.storydefinitions;
-                console.info(this.stories)
+        })
+        .then(response => {
+            // JSON responses are automatically parsed.
+            this.stories = response.data.data.storydefinitions;
+            console.info(this.stories)
 
-                axios({
-                    //url: "http://192.168.0.40:1337/graphql",
-                    url: "http://localhost:1337/graphql",
-                    method: "post",
-                    data: {
-                        query: `
-                        query {
-                            storydefinitions {
+            axios({
+                url: "http://localhost:1337/graphql",
+                method: "post",
+                data: {
+                    query: `
+                    query {
+                        storydefinitions {
+                            _id
+                            storyblocks {
                                 _id
-                                storyblocks {
-                                    _id
-                                }
                             }
                         }
-                    `
                     }
-                })
-                .then(storyblocksCount => {
-                    console.clear();
-                    //sum each storydefinition sequences
-                    const blocks = _.forEach(storyblocksCount.data.data.storydefinitions, obj => {
-                        const story = _.find(this.stories, {'_id': obj._id});
-                        console.log(story)
-                        console.log(obj.storyblocks)
-                        Vue.set(story, 'totalBlocks', obj.storyblocks.length)
-                        
-                    });
-    
-                    console.info(this.stories)
-                })
+                `
+                }
             })
-            .catch(e => {
-                this.errors.push(e);
-            });
+            .then(storyblocksCount => {
+                console.clear();
+                //sum each storydefinition sequences
+                const blocks = _.forEach(storyblocksCount.data.data.storydefinitions, obj => {
+                    const story = _.find(this.stories, {'_id': obj._id});
+                    console.log(story)
+                    console.log(obj.storyblocks)
+                    Vue.set(story, 'totalBlocks', obj.storyblocks.length)
+                    
+                });
 
-        // async / await version (created() becomes async created())
-        //
-        // try {
-        //   const response = await axios.get(`http://jsonplaceholder.typicode.com/posts`)
-        //   this.posts = response.data
-        // } catch (e) {
-        //   this.errors.push(e)
-        // }
+                console.info(this.stories)
+            })
+        })
+        .catch(e => {
+            this.errors.push(e);
+        });
     }
 };
 </script>

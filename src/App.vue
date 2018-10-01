@@ -3,7 +3,7 @@
     <sui-menu fixed inverted>
       <sui-container fluid>
         <router-link :to="{name: 'GridList'}" is="sui-menu-item" class="header">
-          <img src="/static/images/logo.png" class="logo">
+          <sui-icon name="pencil alternate" class="logo" />
           &nbsp;&nbsp;StoryTime
         </router-link>
       </sui-container>
