@@ -2,7 +2,7 @@
   <div id="app">
     <sui-menu fixed inverted>
       <sui-container fluid>
-        <router-link :to="{name: 'GridList'}" is="sui-menu-item" class="header">
+        <router-link :to="{name: 'Index_Page'}" is="sui-menu-item" class="header">
           <img src="/static/images/logo.png" class="logo">
           &nbsp;&nbsp;StoryTime
         </router-link>

@@ -120,7 +120,7 @@ import VueAlertify from "vue-alertify"
 Vue.use(VueAlertify)
 
 export default {
-    name: "StoryDetail",
+    name: "StoryDetail_Page",
 
     data() {
         return {

@@ -21,7 +21,7 @@
                 </span>
                 <sui-icon name="comment" /> {{story.totalBlocks||0}} {{story.totalBlocks == 1 ? 'sequence' : 'sequences'}}
             </sui-card-content>
-                <router-link :to="{ name: 'StoryDetail', params: { id: story._id }}" class="ui bottom attached button">
+                <router-link :to="{ name: 'StoryDetail_Page', params: { id: story._id }}" class="ui bottom attached button">
                     <sui-icon name="add" /> Add Sequence
                 </router-link>
                 
@@ -39,7 +39,7 @@ import moment from "moment";
 import _ from "lodash";
 
 export default {
-    name: "GridList",
+    name: "Index_Page",
 
     data() {
         return {
