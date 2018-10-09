@@ -12,4 +12,4 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
-secrets.json
+src/secrets.json
