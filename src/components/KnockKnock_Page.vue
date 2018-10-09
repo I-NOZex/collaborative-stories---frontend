@@ -35,7 +35,7 @@
                 <sui-form-field>
                     <sui-input type="password" placeholder="Repeat password" icon="lock" icon-position="left" />
                 </sui-form-field>
-                <vue-recaptcha sitekey="{{secrets.recaptcha_sitekey}}" size="invisible">
+                <vue-recaptcha :sitekey="secrets.recaptcha_sitekey" size="invisible">
                 </vue-recaptcha>                
                 <sui-button size="large" positive fluid>Join</sui-button>
             </sui-segment>
@@ -61,7 +61,7 @@ import Vue from 'vue';
 import axios from "axios";
 import VueRecaptcha from 'vue-recaptcha';
 import VueAlertify from "vue-alertify";
-import secrets from "./../secrets";
+import secrets from "./../secrets.json";
 Vue.use(VueAlertify)
 
 export default {
