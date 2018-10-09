@@ -7,7 +7,7 @@ import KnockKnock_Page from "@/components/KnockKnock_Page";
 Vue.use(Router)
 
 export default new Router({
-    // https://router.vuejs.org/guide/essentials/history-mode.html
+    /* see: https://router.vuejs.org/guide/essentials/history-mode.html */
     mode: "history",
     routes: [
         {

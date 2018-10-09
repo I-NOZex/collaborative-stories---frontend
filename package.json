@@ -17,6 +17,7 @@
     "semantic-ui-vue": "^0.4.1",
     "vue": "^2.5.2",
     "vue-alertify": "^1.0.5",
+    "vue-recaptcha": "^1.1.1",
     "vue-router": "^3.0.1",
     "vue-select": "^2.5.1"
   },
