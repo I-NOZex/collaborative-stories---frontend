@@ -21,36 +21,52 @@
             </sui-segment>
         </sui-form>
 
-        <sui-form @submit.prevent="requestRegister" v-if="registerActivated">
+        <sui-form @submit.prevent="requestRegister" v-if="registerActivated" novalidate="true">
             <sui-segment stacked>
-                <sui-form-field>
+                <sui-message v-if="errors.length" negative>
+                    <sui-message-header>Please correct the following error(s):</sui-message-header>
+                    <ul>
+                        <li v-for="error in errors" :key="error">{{ error }}</li>
+                    </ul>
+                </sui-message>
+
+                <sui-form-field v-bind:error="formErrors.fields.username.length > 1"> 
                     <sui-input type="text" placeholder="Name" icon="user" icon-position="left" v-model="registerForm.username"/>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.username.length > 1"> {{formErrors.fields.username}} </sui-label>
                 </sui-form-field>
-                <sui-form-field>
+
+                <sui-form-field v-bind:error="formErrors.fields.email.length > 1">
                     <sui-input type="email" placeholder="E-mail address" icon="envelope" icon-position="left" v-model="registerForm.email"/>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.email.length > 1"> {{formErrors.fields.email}} </sui-label>
                 </sui-form-field>
-                <sui-form-field>
+
+                <sui-form-field v-bind:error="formErrors.fields.password.length > 1">
                     <sui-input type="password" placeholder="Password" icon="lock" icon-position="left" v-model="registerForm.password"/>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.password.length > 1"> {{formErrors.fields.password}} </sui-label>
                 </sui-form-field>
-                <sui-form-field>
-                    <sui-input type="password" placeholder="Repeat password" icon="lock" icon-position="left" />
+
+                <sui-form-field v-bind:error="formErrors.fields.repeatPassword.length > 1">
+                    <sui-input type="password" placeholder="Repeat password" icon="lock" icon-position="left" v-model="registerForm.repeatPassword"/>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.repeatPassword.length > 1"> {{formErrors.fields.repeatPassword}} </sui-label>
                 </sui-form-field>
+
                 <vue-recaptcha :sitekey="secrets.recaptcha_sitekey" size="invisible">
-                </vue-recaptcha>                
-                <sui-button size="large" positive fluid>Join</sui-button>
+                </vue-recaptcha>               
+
+                <sui-button size="large" primary fluid>Join</sui-button>
             </sui-segment>
         </sui-form>
 
         <sui-divider horizontal>Or</sui-divider>
 
         <div class="text-center" v-if="loginActivated">
-            <sui-button content="Join now!" icon="edit outline" size="big" v-on:click="showRegister" color="green" positive />
+            <sui-button content="Join now!" icon="edit outline" size="big" v-on:click="showRegister" positive/>
             <sui-button social="facebook" content="Facebook" icon="facebook" size="big" style="display:none" />
             <sui-button social="twitter" content="Twitter" icon="twitter" size="big" style="display:none" />
         </div>
 
         <div class="text-center" v-if="registerActivated">
-            <sui-button content="I already have an account" icon="arrow left" size="big" v-on:click="showLogin" secondary/>
+            <sui-button content="I already have an account" icon="arrow left" size="big" v-on:click="showLogin" positive/>
         </div>
     </sui-grid-column>
 </sui-grid>
@@ -62,20 +78,38 @@ import axios from "axios";
 import VueRecaptcha from 'vue-recaptcha';
 import VueAlertify from "vue-alertify";
 import secrets from "./../secrets.json";
-Vue.use(VueAlertify)
+
+const opts = {
+  notifier:{
+      delay: 10,
+  }
+}
+ 
+Vue.use(VueAlertify, opts)
 
 export default {
     name: 'KnockKnock_Page',
     components: { VueRecaptcha },
     data() {
         return {
+            errors: [],
             registerActivated: false,
             loginActivated: true,
             secrets: secrets,
             registerForm: {
                 username: '',
                 email: '',
-                password: ''
+                password: '',
+                repeatPassword: ''
+            },
+            formErrors: {
+                hasErrors: false,
+                fields : {
+                    username: '',
+                    email: '',
+                    password: '',
+                    repeatPassword: '' 
+                }              
             }
         };
     },
@@ -88,7 +122,54 @@ export default {
             this.loginActivated = true;
             this.registerActivated = false;
         },
+        validEmail:function(email) {
+            var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(email);
+        },
+        validateForm: function(){
+            this.formErrors = {
+                hasErrors: false,
+                fields : {
+                    username: '',
+                    email: '',
+                    password: '',
+                    repeatPassword: '' 
+                }                
+            };
+
+            if(this.registerForm.username.length < 1){ 
+                this.formErrors.fields.username = ("Name is required.");
+                this.formErrors.hasErrors  = true;
+            }
+
+            if(!this.registerForm.email) {
+                this.formErrors.fields.email = ("Email required.");
+                this.formErrors.hasErrors  = true;
+
+            } else if(!this.validEmail(this.registerForm.email)) {
+                this.formErrors.fields.email = ("Valid email required.");
+                this.formErrors.hasErrors  = true;
+            }
+
+            if(this.registerForm.password.length < 1) {
+                this.formErrors.fields.password = ("Password is required.");
+                this.formErrors.hasErrors  = true;
+            }
+
+            if(this.registerForm.repeatPassword.length < 1) {
+                this.formErrors.fields.repeatPassword = ("Repeat Password is required.");
+                this.formErrors.hasErrors  = true;
+
+            } else if(this.registerForm.repeatPassword !== this.registerForm.password) {
+                this.formErrors.fields.repeatPassword = ("The passwords are different.");
+                this.formErrors.hasErrors  = true;
+            }
+
+            return this.formErrors.hasErrors  ? false : true;
+        },
         requestRegister: async function(){
+            if( !this.validateForm() ) return false;
+
             await axios({
                 url: "http://192.168.0.40:1337/auth/local/register",
                 method: "post",
@@ -98,7 +179,9 @@ export default {
                     this.$alertify.success("Registed");
                     this.showLogin();
             }).catch(error => {
-                this.$alertify.error("Error")
+                console.log(error)
+                this.errors.push(error.response.data.message)
+                this.$alertify.error(`<b>Error:</b> ${error.response.data.message}`)
             });
         }        
     },
@@ -118,5 +201,11 @@ export default {
 
 .text-center{
     text-align: center;
+}
+
+.ui.pointing.label{
+    position: absolute;
+    white-space: nowrap;
+    margin-top: 0.4rem;
 }
 </style>
