@@ -6,16 +6,16 @@
             <sui-header-content>Who's there?</sui-header-content>
         </h2>
 
-        <sui-form v-if="loginActivated">
+        <sui-form @submit.prevent="requestLogin" v-if="loginActivated">
             <sui-segment stacked>
                 <sui-form-field>
-                    <sui-input type="email" placeholder="E-mail address" icon="envelope" icon-position="left" />
+                    <sui-input type="email" placeholder="E-mail address" icon="envelope" icon-position="left" v-model="loginForm.identifier" required/>
                 </sui-form-field>
                 <sui-form-field>
-                    <sui-input type="password" placeholder="Password" icon="lock" icon-position="left" />
+                    <sui-input type="password" placeholder="Password" icon="lock" icon-position="left" v-model="loginForm.password" required/>
                 </sui-form-field>
                 <sui-form-field>
-                    <sui-checkbox label="Remember me" />
+                    <sui-checkbox label="Remember me" v-model="loginForm.rememberMe"/>
                 </sui-form-field>            
                 <sui-button size="large" primary fluid>Login</sui-button>
             </sui-segment>
@@ -30,24 +30,24 @@
                     </ul>
                 </sui-message>
 
-                <sui-form-field v-bind:error="formErrors.fields.username.length > 1"> 
+                <sui-form-field v-bind:error="formErrors.registerFields.username.length > 1"> 
                     <sui-input type="text" placeholder="Name" icon="user" icon-position="left" v-model="registerForm.username"/>
-                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.username.length > 1"> {{formErrors.fields.username}} </sui-label>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.registerFields.username.length > 1"> {{formErrors.registerFields.username}} </sui-label>
                 </sui-form-field>
 
-                <sui-form-field v-bind:error="formErrors.fields.email.length > 1">
+                <sui-form-field v-bind:error="formErrors.registerFields.email.length > 1">
                     <sui-input type="email" placeholder="E-mail address" icon="envelope" icon-position="left" v-model="registerForm.email"/>
-                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.email.length > 1"> {{formErrors.fields.email}} </sui-label>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.registerFields.email.length > 1"> {{formErrors.registerFields.email}} </sui-label>
                 </sui-form-field>
 
-                <sui-form-field v-bind:error="formErrors.fields.password.length > 1">
+                <sui-form-field v-bind:error="formErrors.registerFields.password.length > 1">
                     <sui-input type="password" placeholder="Password" icon="lock" icon-position="left" v-model="registerForm.password"/>
-                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.password.length > 1"> {{formErrors.fields.password}} </sui-label>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.registerFields.password.length > 1"> {{formErrors.registerFields.password}} </sui-label>
                 </sui-form-field>
 
-                <sui-form-field v-bind:error="formErrors.fields.repeatPassword.length > 1">
+                <sui-form-field v-bind:error="formErrors.registerFields.repeatPassword.length > 1">
                     <sui-input type="password" placeholder="Repeat password" icon="lock" icon-position="left" v-model="registerForm.repeatPassword"/>
-                    <sui-label basic color="red" pointing="left" v-if="formErrors.fields.repeatPassword.length > 1"> {{formErrors.fields.repeatPassword}} </sui-label>
+                    <sui-label basic color="red" pointing="left" v-if="formErrors.registerFields.repeatPassword.length > 1"> {{formErrors.registerFields.repeatPassword}} </sui-label>
                 </sui-form-field>
 
                 <vue-recaptcha :sitekey="secrets.recaptcha_sitekey" size="invisible">
@@ -93,6 +93,7 @@ export default {
     data() {
         return {
             errors: [],
+            user: null,
             registerActivated: false,
             loginActivated: true,
             secrets: secrets,
@@ -102,14 +103,19 @@ export default {
                 password: '',
                 repeatPassword: ''
             },
+            loginForm: {
+                identifier: localStorage.lastuser || '',
+                password: '',
+                rememberMe: false,
+            },            
             formErrors: {
                 hasErrors: false,
-                fields : {
+                registerFields : {
                     username: '',
                     email: '',
                     password: '',
                     repeatPassword: '' 
-                }              
+                }             
             }
         };
     },
@@ -126,10 +132,10 @@ export default {
             var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(email);
         },
-        validateForm: function(){
+        validateForm: function(fields){
             this.formErrors = {
                 hasErrors: false,
-                fields : {
+                registerFields : {
                     username: '',
                     email: '',
                     password: '',
@@ -138,30 +144,30 @@ export default {
             };
 
             if(this.registerForm.username.length < 1){ 
-                this.formErrors.fields.username = ("Name is required.");
+                this.formErrors.registerFields.username = ("Name is required.");
                 this.formErrors.hasErrors  = true;
             }
 
             if(!this.registerForm.email) {
-                this.formErrors.fields.email = ("Email required.");
+                this.formErrors.registerFields.email = ("Email required.");
                 this.formErrors.hasErrors  = true;
 
             } else if(!this.validEmail(this.registerForm.email)) {
-                this.formErrors.fields.email = ("Valid email required.");
+                this.formErrors.registerFields.email = ("Valid email required.");
                 this.formErrors.hasErrors  = true;
             }
 
             if(this.registerForm.password.length < 1) {
-                this.formErrors.fields.password = ("Password is required.");
+                this.formErrors.registerFields.password = ("Password is required.");
                 this.formErrors.hasErrors  = true;
             }
 
             if(this.registerForm.repeatPassword.length < 1) {
-                this.formErrors.fields.repeatPassword = ("Repeat Password is required.");
+                this.formErrors.registerFields.repeatPassword = ("Repeat Password is required.");
                 this.formErrors.hasErrors  = true;
 
             } else if(this.registerForm.repeatPassword !== this.registerForm.password) {
-                this.formErrors.fields.repeatPassword = ("The passwords are different.");
+                this.formErrors.registerFields.repeatPassword = ("The passwords are different.");
                 this.formErrors.hasErrors  = true;
             }
 
@@ -183,7 +189,25 @@ export default {
                 this.errors.push(error.response.data.message)
                 this.$alertify.error(`<b>Error:</b> ${error.response.data.message}`)
             });
-        }        
+        },
+        requestLogin: async function(){
+            if(this.loginForm.rememberMe){
+                localStorage.setItem("lastuser", this.loginForm.identifier);
+            }
+            await axios({
+                url: "http://192.168.0.40:1337/auth/local",
+                method: "post",
+                timeout: 5000,
+                data: this.loginForm
+            }).then(response => {
+                this.user = response.data.user;
+                this.$alertify.success(`Welcome back: <b>${response.data.user.username}</b>!`);
+                this.showLogin();
+            }).catch(error => {
+                console.log(error)
+                this.$alertify.error(`Error`)
+            });
+        }         
     },
 };
 </script>
