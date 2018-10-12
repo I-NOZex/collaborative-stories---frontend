@@ -10,13 +10,13 @@
         <sui-form @submit.prevent="requestLogin" v-if="loginActivated">
             <sui-segment stacked>
 
-                <sui-form-field v-for="(fieldData, fieldKey) in loginModel.fields" :key="fieldKey" v-bind:error="!fieldData.isValid">
+                <sui-form-field v-for="(fieldData, fieldKey) in loginModel.fields" :key="fieldKey" v-bind:error="!fieldData.isValid" v-if="!fieldData.skipRender">
                     <sui-input :type="fieldData.type" :placeholder="fieldData.placeholder" :icon="fieldData.icon" icon-position="left" v-model="fieldData.value" />
                     <sui-label basic color="red" pointing="left" v-if="!fieldData.isValid"> {{fieldData.errorMsg}} </sui-label>
                 </sui-form-field>
 
                 <sui-form-field>
-                    <sui-checkbox label="Remember me" v-model="loginForm.rememberMe" />
+                    <sui-checkbox :label="loginModel.fields.rememberMe.placeholder" v-model="loginModel.fields.rememberMe.value" />
                 </sui-form-field>
                 <sui-button size="large" primary fluid>Login</sui-button>
             </sui-segment>
@@ -65,6 +65,8 @@ import axios from "axios";
 import VueRecaptcha from 'vue-recaptcha';
 import VueAlertify from "vue-alertify";
 import secrets from "./../secrets.json";
+import {AUTH_REQUEST} from '@/store/actions/auth'
+import {USER_SUCCESS} from '@/store/actions/user'
 
 const opts = {
     notifier: {
@@ -86,27 +88,6 @@ export default {
             registerActivated: false,
             loginActivated: true,
             secrets: secrets,
-            registerForm: {
-                username: '',
-                email: '',
-                password: '',
-                repeatPassword: ''
-            },
-            loginForm: {
-                identifier: localStorage.lastuser || '',
-                password: '',
-                rememberMe: false,
-            },
-            formErrors: {
-                hasErrors: false,
-                registerFields: {
-                    username: '',
-                    email: '',
-                    password: '',
-                    repeatPassword: ''
-                }
-            },
-
             loginModel: {
                 isValid: true,
                 fields: {
@@ -117,7 +98,8 @@ export default {
                         value: localStorage.lastuser || '',
                         validationRules: [],
                         isValid: true,
-                        errorMsg: ''
+                        errorMsg: '',
+                        skipRender: false
                     },
                     password: {
                         type: 'password',
@@ -126,7 +108,13 @@ export default {
                         value: '',
                         validationRules: [],
                         isValid: true,
-                        errorMsg: ''
+                        errorMsg: '',
+                        skipRender: false
+                    },
+                    rememberMe: {
+                        placeholder: 'Remember me',
+                        value: localStorage.lastuser ? true : false,
+                        skipRender: true
                     }
                 }
             },            
@@ -207,7 +195,7 @@ export default {
                             }
 
                         } else if(field.isValid && rule === 'email') {
-                            if ( !this.validEmail(field.value.email) ) {
+                            if ( !this.validEmail(field.value) ) {
                                 field.errorMsg = `${field.placeholder} is not valid.`;
                                 field.isValid = false;
                                 model.isValid = false;
@@ -218,7 +206,6 @@ export default {
 
                             if( model.fields.hasOwnProperty(comparationFieldName) ){
                                 const comparationField = model.fields[comparationFieldName];
-                                console.log(field.value, comparationField.value)
                                 if( field.value !== comparationField.value ){
                                     field.errorMsg = `${field.placeholder} must be equal to ${comparationField.placeholder}.`;
                                     field.isValid = false;
@@ -231,81 +218,61 @@ export default {
                     
                 });
             });
- /*            this.formErrors = {
-                hasErrors: false,
-                registerFields: {
-                    username: '',
-                    email: '',
-                    password: '',
-                    repeatPassword: ''
-                }
-            };
-
-            if (this.registerForm.username.length < 1) {
-                this.formErrors.registerFields.username = ("Name is required.");
-                this.formErrors.hasErrors = true;
-            }
-
-            if (!this.registerForm.email) {
-                this.formErrors.registerFields.email = ("Email required.");
-                this.formErrors.hasErrors = true;
-
-            } else if (!this.validEmail(this.registerForm.email)) {
-                this.formErrors.registerFields.email = ("Valid email required.");
-                this.formErrors.hasErrors = true;
-            }
-
-            if (this.registerForm.password.length < 1) {
-                this.formErrors.registerFields.password = ("Password is required.");
-                this.formErrors.hasErrors = true;
-            }
-
-            if (this.registerForm.repeatPassword.length < 1) {
-                this.formErrors.registerFields.repeatPassword = ("Repeat Password is required.");
-                this.formErrors.hasErrors = true;
-
-            } else if (this.registerForm.repeatPassword !== this.registerForm.password) {
-                this.formErrors.registerFields.repeatPassword = ("The passwords are different.");
-                this.formErrors.hasErrors = true;
-            } */
-console.log(model); return false;
             return model.isValid;
         },
         requestRegister: async function () {
-                if (!this.validateForm(this.registerModel)) return false;
+            if (!this.validateForm(this.registerModel)) return false;
 
-                await axios({
-                    url: "http://192.168.0.40:1337/auth/local/register",
-                    method: "post",
-                    timeout: 5000,
-                    data: this.registerForm
-                }).then(response => {
-                    this.$alertify.success("Registed");
-                    this.showLogin();
-                }).catch(error => {
-                    console.log(error)
-                    this.errors.push(error.response.data.message)
-                    this.$alertify.error(`<b>Error:</b> ${error.response.data.message}`)
-                });
-            },
-            requestLogin: async function () {
-                if (this.loginForm.rememberMe) {
-                    localStorage.setItem("lastuser", this.loginForm.identifier);
-                }
-                await axios({
-                    url: "http://192.168.0.40:1337/auth/local",
-                    method: "post",
-                    timeout: 5000,
-                    data: this.loginForm
-                }).then(response => {
-                    this.user = response.data.user;
-                    this.$alertify.success(`Welcome back: <b>${response.data.user.username}</b>!`);
-                    this.showLogin();
-                }).catch(error => {
-                    console.log(error)
-                    this.$alertify.error(`Error`)
-                });
+            const registerData = {
+                username: this.registerModel.fields.username.value,
+                email: this.registerModel.fields.email.value,
+                password: this.registerModel.fields.password.value,
+                repeatPassword: this.registerModel.fields.repeatPassword.value
             }
+
+            await axios({
+                url: "http://192.168.0.40:1337/auth/local/register",
+                method: "post",
+                timeout: 5000,
+                data: registerData
+            }).then(response => {
+                this.$alertify.success("Registed");
+                const token = response.data.jwt
+                localStorage.setItem('user-token', token)
+                // Add the following line:
+                axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+                this.$store.dispatch(USER_SUCCESS, response);
+                this.$router.push('/');
+            }).catch(error => {
+                console.log(error)
+                this.errors.push(error)
+                this.$alertify.error(`<b>Error:</b>`)
+            });
+        },
+
+        requestLogin: async function () {
+            if (this.loginModel.fields.rememberMe.value === true) {
+                localStorage.setItem("lastuser", this.loginModel.fields.identifier.value);
+            } else {
+                localStorage.removeItem('lastuser');
+            }
+
+            const loginData = {
+                identifier: this.loginModel.fields.identifier.value,
+                password: this.loginModel.fields.password.value,
+            }
+
+            this.$store.dispatch(AUTH_REQUEST, loginData)
+            .then(response => {
+                this.user = response.data.user;
+                this.$alertify.success(`Welcome back: <b>${response.data.user.username}</b>!`);
+                this.showLogin();
+                this.$router.push('/')
+            }).catch(error => {
+                console.log(error)
+                this.$alertify.error(`Error`)
+            });
+        }
     },
 };
 </script>

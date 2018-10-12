@@ -88,8 +88,8 @@ export default {
                 console.info(this.stories)
 
                 axios({
-                    //url: "http://192.168.0.40:1337/graphql",
-                    url: "http://localhost:1337/graphql",
+                    url: "http://192.168.0.40:1337/graphql",
+                    //url: "http://localhost:1337/graphql",
                     method: "post",
                     data: {
                         query: `
