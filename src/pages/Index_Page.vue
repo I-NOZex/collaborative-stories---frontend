@@ -1,42 +1,14 @@
 <template lang="html">
 <div>
-    <sui-card-group :items-per-row="3" v-if="stories && stories.length" stackable>
-        <sui-card v-for="(story, idx) in stories" :key="idx">
-            <sui-card-content>
-                <sui-image src="https://api.adorable.io/avatars/40/boot.png" shape="circular" size="mini" />
-                <strong>{{story.user ? story.user.username : "..."}}</strong>
-                <sui-card-meta slot="right">{{story.createdAt | timeAgo}}</sui-card-meta>
-            </sui-card-content>
-
-            <sui-card-content>
-                <sui-card-description>
-                    <p class="block-with-text">
-                    {{story.storyblocks.length ? story.storyblocks[0].storyBody : '...'}}
-                    </p>
-                </sui-card-description>
-            </sui-card-content>
-            <sui-card-content>
-                <span slot="right">
-                    <sui-icon name="heart outline" /> {{story.likes||0}} {{story.likes == 1 ? 'like' : 'likes'}}
-                </span>
-                <sui-icon name="comment" /> {{story.totalBlocks||0}} {{story.totalBlocks == 1 ? 'sequence' : 'sequences'}}
-            </sui-card-content>
-                <router-link :to="{ name: 'StoryDetail_Page', params: { id: story._id }}" class="ui bottom attached button">
-                    <sui-icon name="add" /> Add Sequence
-                </router-link>
-                
-                
-        </sui-card>
-
-    </sui-card-group>
+    <stories-list :stories="stories"></stories-list>
 </div>
 </template>
 
 <script>
 import Vue from "vue";
 import axios from "axios";
-import moment from "moment";
 import _ from "lodash";
+import StoriesList from "@/components/stories-list.vue"
 
 export default {
     name: "Index_Page",
@@ -47,17 +19,13 @@ export default {
             errors: []
         };
     },
-
-    filters: {
-        timeAgo: function (date) {
-            return moment(date).fromNow();
-        }
-    },
-
+    components: {
+        StoriesList
+    },    
     // Fetches posts when the component is created.
     created() {
         axios({
-                url: "http://192.168.0.40:1337/graphql",
+                url: "http://127.0.0.1:1337/graphql",
                 //url: "http://localhost:1337/graphql",
                 method: "post",
                 data: {
@@ -88,7 +56,7 @@ export default {
                 console.info(this.stories)
 
                 axios({
-                    url: "http://192.168.0.40:1337/graphql",
+                    url: "http://127.0.0.1:1337/graphql",
                     //url: "http://localhost:1337/graphql",
                     method: "post",
                     data: {
@@ -142,43 +110,4 @@ body {
   background: white;
 }
 
-/* styles for '...' */ 
-.block-with-text {
-  /* hide text if it more than N lines  */
-  overflow: hidden;
-  /* for set '...' in absolute position */
-  position: relative; 
-  /* use this value to count block height */
-  line-height: 1.4285em; /* SEMANTIC-UI default */
-  /* max-height = line-height (1.4285em) * lines max number (3) */
-  max-height: calc(1.4285em * 3); 
-  /* fix problem when last visible word doesn't adjoin right side  */
-  text-align: justify;
-  
-  /* */
-  margin-right: -1em;
-  padding-right: 1em;
-}
-.block-with-text:before {
-  /* points in the end */
-  content: '...';
-  /* absolute position */
-  position: absolute;
-  /* set position to right bottom corner of block */
-  right: 0;
-  bottom: 0;
-}
-.block-with-text:after {
-  /* points in the end */
-  content: '';
-  /* absolute position */
-  position: absolute;
-  /* set position to right bottom corner of text */
-  right: 0;
-  width: 1em;
-  /* set width and height */
-  height: 1em;
-  margin-top: 0.2em;
-  background: white;
-}
 </style>

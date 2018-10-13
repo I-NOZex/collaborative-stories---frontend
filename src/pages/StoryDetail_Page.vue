@@ -215,7 +215,7 @@ export default {
             }
 
             await axios({
-                url: "http://192.168.0.40:1337/storyblock",
+                url: "http://127.0.0.1:1337/storyblock",
                 method: "post",
                 timeout: 5000,
                 data: data
@@ -246,7 +246,7 @@ export default {
         
         try {
             const response = await axios({
-                url: "http://192.168.0.40:1337/graphql",
+                url: "http://127.0.0.1:1337/graphql",
                 //url: "http://localhost:1337/graphql",
                 method: "post",
                 data: {

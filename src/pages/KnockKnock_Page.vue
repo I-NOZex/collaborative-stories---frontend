@@ -231,7 +231,7 @@ export default {
             }
 
             await axios({
-                url: "http://192.168.0.40:1337/auth/local/register",
+                url: "http://127.0.0.1:1337/auth/local/register",
                 method: "post",
                 timeout: 5000,
                 data: registerData

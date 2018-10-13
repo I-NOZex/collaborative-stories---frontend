@@ -1,10 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import Vuex from 'vuex'
-import Index_Page from "@/components/Index_Page";
-import StoryDetail_Page from "@/components/StoryDetail_Page";
-import KnockKnock_Page from "@/components/KnockKnock_Page";
-import Account_Page from "@/components/Account_Page";
+import Index_Page from "@/pages/Index_Page";
+import StoryDetail_Page from "@/pages/StoryDetail_Page";
+import KnockKnock_Page from "@/pages/KnockKnock_Page";
+import Account_Page from "@/pages/Account_Page";
 import store from '@/store' // your vuex store 
 
 Vue.use(Router)

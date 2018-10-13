@@ -15,7 +15,7 @@ const actions = {
     commit(USER_REQUEST)
 
     axios({
-        url: "http://192.168.0.40:1337/user/me",
+        url: "http://127.0.0.1:1337/user/me",
         method: "get",
         timeout: 5000,
 

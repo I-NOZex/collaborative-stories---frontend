@@ -7,15 +7,26 @@
             &nbsp;&nbsp;StoryTime
             </router-link>
 
-                <sui-menu-menu position="right" v-if="this.$store.getters.isAuthenticated && this.$store.getters.isProfileLoaded">
-                    <sui-menu-item right>
-                        <span>Welcome back <b>{{this.$store.getters.getProfile.username}}</b></span>
-                    </sui-menu-item>
-                    <a is="sui-menu-item" v-on:click="logout" right>
-                        <sui-icon name="sign out alternate" />
-                        <span>Logout</span>
-                    </a>
-                </sui-menu-menu>
+            <sui-menu-menu position="right" v-if="this.$store.getters.isAuthenticated && this.$store.getters.isProfileLoaded">
+                <sui-menu-item>
+                    <span>Welcome back 
+                        <router-link :to="{name: 'Account_Page', params: { id: this.$store.getters.getProfile._id }}" class="header">
+                            <b>{{this.$store.getters.getProfile.username}}</b>
+                            </router-link>
+                    </span>
+                </sui-menu-item>
+                <a is="sui-menu-item" v-on:click="logout" right>
+                    <sui-icon name="sign out alternate" />
+                    <span>Logout</span>
+                </a>
+            </sui-menu-menu>
+
+            <sui-menu-menu position="right" v-if="!this.$store.getters.isAuthenticated">
+                <router-link is="sui-menu-item" :to="{name: 'KnockKnock_Page'}" class="header">
+                    <sui-icon name="sign in alternate" />
+                    <span>Login</span>
+                </router-link>                
+            </sui-menu-menu>
         </sui-container>
     </sui-menu>
 
