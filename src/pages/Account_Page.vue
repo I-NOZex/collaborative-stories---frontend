@@ -37,12 +37,15 @@
 </template>
 
 <script>
-import StoriesList from "@/components/stories-list.vue"
-import axios from "axios";
+import StoriesList from "@/components/stories-list.vue";
+import Stories from "@/services/api/Stories";
+import countStoryResults from "@/mixins/countStoryResults"
+
 
 
 export default {
     name: "Account_Page",
+    mixins: [countStoryResults],
     components: {
         StoriesList
     },
@@ -65,70 +68,14 @@ export default {
         },
     },    
     created(){
-       axios({
-                url: "http://127.0.0.1:1337/graphql",
-                //url: "http://localhost:1337/graphql",
-                method: "post",
-                data: {
-                    query: `
-                    query {
-                        storydefinitions(where: {user:"` + this.profile._id + `"})  {
-                            _id
-                            title
-                            createdAt
-                            likes
-                            user {
-                                username
-                            }
-                            # FIXME: I should be able to use 'where: {order: 1}' as a filter
-                            storyblocks (sort: "order:asc", limit: 1) {
-                                storyBody
-                                order
-                                _id
-                            }
-                        }
-                    }
-                `
-                }
-            })
-            .then(response => {
-                // JSON responses are automatically parsed.
-                this.myStories = response.data.data.storydefinitions;
-                console.info(this.myStories)
-
-                axios({
-                    url: "http://127.0.0.1:1337/graphql",
-                    //url: "http://localhost:1337/graphql",
-                    method: "post",
-                    data: {
-                        query: `
-                        query {
-                            storydefinitions(where: {user:"` + this.profile._id + `"}) {
-                                _id
-                                storyblocks {
-                                    _id
-                                }
-                            }
-                        }
-                    `
-                    }
-                })
-                .then(storyblocksCount => {
-                    console.clear();
-                    //sum each storydefinition sequences
-                    const blocks = _.forEach(storyblocksCount.data.data.storydefinitions, obj => {
-                        const story = _.find(this.myStories, {'_id': obj._id});
-                        console.log(story)
-                        console.log(obj.storyblocks)
-                        Vue.set(story, 'totalBlocks', obj.storyblocks.length)
-                        
-                    });
-    
-                })
-            })
-            .catch(e => {
-                this.errors.push(e);
-            });
+        Stories.getStoryDefinitions( `where: {user:"${this.profile._id}"}` )
+        .then(response => {
+            this.myStories = response.data.data.storydefinitions;
+            this.setCountStoryResults(`where: {user:"${this.profile._id}"}`, this.myStories)
+        })
+        .catch(e => {
+            this.errors.push(e);
+        });
 
               
     }

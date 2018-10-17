@@ -5,13 +5,13 @@
 </template>
 
 <script>
-import Vue from "vue";
-import axios from "axios";
-import _ from "lodash";
 import StoriesList from "@/components/stories-list.vue"
+import Stories from "@/services/api/Stories";
+import countStoryResults from "@/mixins/countStoryResults"
 
 export default {
     name: "Index_Page",
+    mixins: [countStoryResults],
 
     data() {
         return {
@@ -24,71 +24,15 @@ export default {
     },    
     // Fetches posts when the component is created.
     created() {
-        axios({
-                url: "http://127.0.0.1:1337/graphql",
-                //url: "http://localhost:1337/graphql",
-                method: "post",
-                data: {
-                    query: `
-                    query {
-                        storydefinitions {
-                            _id
-                            title
-                            createdAt
-                            likes
-                            user {
-                                username
-                            }
-                            # FIXME: I should be able to use 'where: {order: 1}' as a filter
-                            storyblocks (sort: "order:asc", limit: 1) {
-                                storyBody
-                                order
-                                _id
-                            }
-                        }
-                    }
-                `
-                }
-            })
-            .then(response => {
-                // JSON responses are automatically parsed.
-                this.stories = response.data.data.storydefinitions;
-                console.info(this.stories)
-
-                axios({
-                    url: "http://127.0.0.1:1337/graphql",
-                    //url: "http://localhost:1337/graphql",
-                    method: "post",
-                    data: {
-                        query: `
-                        query {
-                            storydefinitions {
-                                _id
-                                storyblocks {
-                                    _id
-                                }
-                            }
-                        }
-                    `
-                    }
-                })
-                .then(storyblocksCount => {
-                    console.clear();
-                    //sum each storydefinition sequences
-                    const blocks = _.forEach(storyblocksCount.data.data.storydefinitions, obj => {
-                        const story = _.find(this.stories, {'_id': obj._id});
-                        console.log(story)
-                        console.log(obj.storyblocks)
-                        Vue.set(story, 'totalBlocks', obj.storyblocks.length)
-                        
-                    });
-    
-                    console.info(this.stories)
-                })
-            })
-            .catch(e => {
-                this.errors.push(e);
-            });
+         Stories.getStoryDefinitions()
+        .then((response) => {
+            // JSON responses are automatically parsed.
+            this.stories = response.data.data.storydefinitions;
+            this.setCountStoryResults(null, this.stories)
+        })
+        .catch(e => {
+            this.errors.push(e);
+        });
 
         // async / await version (created() becomes async created())
         //

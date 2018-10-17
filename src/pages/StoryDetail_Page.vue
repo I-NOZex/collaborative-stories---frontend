@@ -117,6 +117,8 @@ import Vue from "vue";
 import axios from "axios";
 import moment from "moment";
 import VueAlertify from "vue-alertify"
+import Stories from "@/services/api/Stories";
+
 Vue.use(VueAlertify)
 
 export default {
@@ -206,7 +208,7 @@ export default {
             return isValid;
         },
 
-        submitSequence: async function(){
+        submitSequence: function(){
 
             const data = {
                 storyBody: this.newSequence,
@@ -214,12 +216,8 @@ export default {
                 storydefinition: this.story._id
             }
 
-            await axios({
-                url: "http://127.0.0.1:1337/storyblock",
-                method: "post",
-                timeout: 5000,
-                data: data
-            }).then(response => {
+            Stories.createStorySequence(data)
+            .then(response => {
                     this.$alertify.success("Sequence added!")
                     this.storyBlocks.push(response.data)
             }).catch(error => {
@@ -243,44 +241,13 @@ export default {
     
     // Fetches posts when the component is created.
     async created() {
-        
-        try {
-            const response = await axios({
-                url: "http://127.0.0.1:1337/graphql",
-                //url: "http://localhost:1337/graphql",
-                method: "post",
-                data: {
-                    query: `
-                    query {
-                        storydefinition(id: "`+this.$route.params.id+`") {
-                            _id
-                            title
-                            likes
-                            createdAt
-                            user {
-                                username
-                            }
-                        }
-
-                        storyblocks(where: {storydefinition:"`+this.$route.params.id+`"}, sort: "order") {
-                            _id
-                            storyBody
-                            createdAt
-                            order
-                            likes
-                            user {
-                                username
-                            }
-                        }
-                    }
-                `
-                }
-            });
+        Stories.getStoryDefinition(this.$route.params.id)
+        .then(response =>{
             this.story = response.data.data.storydefinition;
             this.storyBlocks = response.data.data.storyblocks;
-        } catch (e) {
+        }).catch(e => {
             this.errors.push(e)
-        }
+        })
 /*             .then(response => {
                 // JSON responses are automatically parsed.
                 this.story = response.data.data.storydefinition;
