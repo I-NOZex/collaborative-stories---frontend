@@ -84,12 +84,12 @@ export default {
         });
     },
 
-    createStorySequence(payload){
+    createStorySequence(_payload){
         return axios({
             url: `${secrets.api_address}/storyblock`,
             method: "post",
             timeout: 5000,
-            data: data
+            data: _payload
         });
     }
 }

@@ -1,7 +1,7 @@
 <template>
 
       <sui-card-group :items-per-row="3" v-if="stories && stories.length" stackable>
-        <sui-card v-for="(story, idx) in stories" :key="idx">
+        <sui-card v-for="story in stories" :key="story.order">
             <sui-card-content >
                 <sui-image src="https://api.adorable.io/avatars/40/boot.png" shape="circular" size="mini" />
                 <strong>{{story.user ? story.user.username : "..."}}</strong>

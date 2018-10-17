@@ -156,7 +156,7 @@ export default {
 
             if (sequenceWords.length <= 10) return false;
             
-            const response = await axios.get(`https://raw.githubusercontent.com/dwyl/english-words/master/words_dictionary.json`);
+            const response = await axios.get(`/static/words_dictionary.json`);
             const wordList = Object.keys(response.data);
 
             let unknownWords = [];
@@ -212,7 +212,7 @@ export default {
 
             const data = {
                 storyBody: this.newSequence,
-                order: this.storyBlocks.length - 1,
+                order: _.last(this.storyBlocks).order + 1,
                 storydefinition: this.story._id
             }
 
