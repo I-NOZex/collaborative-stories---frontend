@@ -31,27 +31,30 @@
     </sui-segment>
 
     <!-- ======= GRID ========== -->
-        <stories-list :stories="myStories"></stories-list>
+        <stories-list :stories="myStories" v-if="isActive('My Stories')"></stories-list>
+        <profile-form v-if="isActive('Settings')"></profile-form>
 
 </div>
 </template>
 
 <script>
 import StoriesList from "@/components/stories-list.vue";
+import ProfileForm from "@/components/profile-form.vue";
 import Stories from "@/services/api/Stories";
 import countStoryResults from "@/mixins/countStoryResults"
+import formValidations from "@/mixins/formValidations"
 
 
 
 export default {
     name: "Account_Page",
-    mixins: [countStoryResults],
+    mixins: [countStoryResults, formValidations],
     components: {
-        StoriesList
+        StoriesList,
+        ProfileForm
     },
     data() {
         return {
-            profile: this.$store.getters.getProfile,
             menu: {
                 active: 'My Stories',
                 items: ['My Stories', 'My Sequences', 'Likes'],
@@ -59,6 +62,11 @@ export default {
             myStories: []
         }
     },
+    computed:{
+        profile(){
+            return this.$store.getters.getProfile
+        }
+    },    
     methods: {
         isActive(name) {
             return this.menu.active === name;
@@ -66,7 +74,8 @@ export default {
         select(name) {
             this.menu.active = name;
         },
-    },    
+    },  
+      
     created(){
         Stories.getStoryDefinitions( `where: {user:"${this.profile._id}"}` )
         .then(response => {

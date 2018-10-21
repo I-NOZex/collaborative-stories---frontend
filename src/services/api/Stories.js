@@ -1,11 +1,10 @@
 import axios from "axios";
 import secrets from "@/secrets.json";
-import { isArray } from "util";
 
 export default {
     getStoryDefinition(_id) {
         return axios({
-            url: `${secrets.api_address}/graphql`,
+            url: `${secrets.API_URL}/graphql`,
             method: "post",
             data: {
                 query: `
@@ -36,10 +35,10 @@ export default {
         });
     },
 
-    getStoryDefinitions(_filter){
-        _filter = _filter ? `(${_filter})` : '';
+    getStoryDefinitions(_filter) {
+        _filter = _filter ? `(${_filter})` : "";
         return axios({
-            url: `${secrets.api_address}/graphql`,
+            url: `${secrets.API_URL}/graphql`,
             method: "post",
             data: {
                 query: `
@@ -61,13 +60,13 @@ export default {
                     }
                 `
             }
-        });    
+        });
     },
 
     getStoryDefinitionsCount(_filter) {
-        _filter = _filter ? `(${_filter})` : '';
+        _filter = _filter ? `(${_filter})` : "";
         return axios({
-            url: `${secrets.api_address}/graphql`,
+            url: `${secrets.API_URL}/graphql`,
             method: "post",
             data: {
                 query: `
@@ -84,12 +83,13 @@ export default {
         });
     },
 
-    createStorySequence(_payload){
+    createStorySequence(_payload) {
         return axios({
-            url: `${secrets.api_address}/storyblock`,
+            url: `${secrets.API_URL}/storyblock`,
             method: "post",
             timeout: 5000,
             data: _payload
         });
-    }
-}
+    },
+
+};
