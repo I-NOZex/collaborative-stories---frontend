@@ -4,16 +4,15 @@
         <sui-grid-column width="four">
 
             <sui-card>
-
-                <sui-image :src="`${API_URL}${this.profile.avatar.url}` || 'https://semantic-ui-vue.github.io/static/images/avatar/large/steve.jpg'"/>
-                <sui-button attached="bottom"  @click="$refs.filePicker.click()">
+                <sui-image :src="`${this.$store.getters.getAvatarImage}` || 'https://semantic-ui-vue.github.io/static/images/avatar/large/steve.jpg'" />
+                <sui-button attached="bottom" :loading="this.currentStatus == 1" @click="$refs.filePicker.click()" primary>
                     <sui-icon name="upload" /> Select image...
                 </sui-button>
-                <sui-progress color="green" attached bottom percent="56" />
+                <sui-progress color="green" attached bottom :percent="uploadPercentage" v-if="this.currentStatus == 1" />
             </sui-card>
 
             <form novalidate>
-            <input type="file" ref="filePicker"  @change="filesChange($event.target.files)"
+                <input type="file" ref="filePicker"  @change="filesChange($event.target.files)"
             accept="image/*" class="input-file">
             </form>
 
@@ -43,17 +42,24 @@
 <script>
 import Vue from "vue";
 import _ from "lodash";
-import {upload} from "@/services/api/Upload";
-import secrets from "@/secrets.json";
-import { USER_REQUEST } from "@/store/actions/user";
+import {
+    upload
+} from "@/services/api/Upload";
+import {USER_REQUEST} from "@/store/actions/user";
+import utils from "@/utils.js";
 
-
-const STATUS_INITIAL = 0, STATUS_SAVING = 1, STATUS_SUCCESS = 2, STATUS_FAILED = 3;
+const STATUS_INITIAL = 0,
+    STATUS_SAVING = 1,
+    STATUS_SUCCESS = 2,
+    STATUS_FAILED = 3;
 
 export default {
     name: 'profileForm',
     data() {
         return {
+            uploadError: null,
+            currentStatus: null,
+            uploadPercentage: 0,
             profileModel: {
                 isValid: true,
                 fields: {
@@ -95,69 +101,73 @@ export default {
                     },
                 }
             },
-            uploadError: null,
-            currentStatus: null,   
-            API_URL: secrets.API_URL         
         }
     },
-    computed:{
-        profile(){
+    computed: {
+        profile() {
             return this.$store.getters.getProfile
         }
     },
-    created(){
+    created() {
         this.profileModel.fields.username.value = this.profile.username;
         this.profileModel.fields.email.value = this.profile.email;
 
     },
     methods: {
-      save(formData) {
-        // upload data to the server
-        this.currentStatus = STATUS_SAVING;
+        onProgress(progress) {
+            this.uploadPercentage = progress
+        },
+        save(formData) {
+            // upload data to the server
+            this.currentStatus = STATUS_SAVING;
+            this.uploadPercentage = 0;
 
-/*
+            upload(formData, this.onProgress)
+                .then(response => {
+                    const photo = _.first(response.data);
+                    this.$store.dispatch(USER_REQUEST);
+                    //this.uploadedFiles = [].concat(x);
+                    this.currentStatus = STATUS_SUCCESS;
+                    this.uploadPercentage = 0;
+                })
+                .catch(err => {
+                    this.uploadError = err.response;
+                    this.currentStatus = STATUS_FAILED;
+                });
+        },
+        filesChange(fileList) {
+            
+            // handle file changes
+            var formData = new FormData();
+            if (!fileList.length) return;
 
+            const fileData = _.first(fileList);
+            // append the files to FormData
 
-*/
+            formData.append("files", fileData, fileData.name); // Buffer or stream of file(s)
+            formData.append("path", "user/avatar"); // Uploading folder of file(s)
+            formData.append("refId", this.profile._id); // User's Id
+            formData.append("ref", "user", ); // Model name
+            formData.append("source", "users-permissions"); // Plugin name
+            formData.append("field", "avatar"); // Field name in the User mod
 
-        upload(formData)
-          .then(response => {
-              console.log(response)
-
-             const photo =  _.first(response.data);
-             this.$store.dispatch(USER_REQUEST);
-            //this.uploadedFiles = [].concat(x);
-            //this.currentStatus = STATUS_SUCCESS;
-          })
-          .catch(err => {
-            this.uploadError = err.response;
-            this.currentStatus = STATUS_FAILED;
-          });
-      },
-      filesChange(fileList) {
-          // handle file changes
-        var formData = new FormData();
-        if (!fileList.length) return;
-
-        const fileData = _.first(fileList);
-        // append the files to FormData
-
-        formData.append("files", fileData, fileData.name);// Buffer or stream of file(s)
-        formData.append("path", "user/avatar"); // Uploading folder of file(s)
-        formData.append("refId", this.profile._id); // User's Id
-        formData.append("ref", "user",); // Model name
-        formData.append("source", "users-permissions"); // Plugin name
-        formData.append("field", "avatar"); // Field name in the User mod
-
-        // save it
-        this.save(formData);
-      }        
+            // save it
+            this.save(formData);
+        }
     }
 }
 </script>
 
 <style>
-.input-file{
+.input-file {
     display: none;
+}
+
+.ui.progress.attached, .ui.progress.attached .bar {
+    height: .25rem;
+}
+
+.ui.progress.attached {
+    margin-top: -4px;
 }
 </style>

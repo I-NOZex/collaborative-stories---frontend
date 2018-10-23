@@ -2,7 +2,7 @@
 <div>
     <sui-segment>
         <sui-header icon text-align="center">
-            <sui-icon name="users" circular />
+            <sui-image circular  size="massive" :src="`${this.$store.getters.getAvatarImage}` || 'https://semantic-ui-vue.github.io/static/images/avatar/large/steve.jpg'" />
             <sui-header-content>
                 <h2>{{profile.username}}</h2>
                 <span>{{profile.email}}</span>
