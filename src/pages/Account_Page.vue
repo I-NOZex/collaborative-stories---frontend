@@ -44,8 +44,6 @@ import Stories from "@/services/api/Stories";
 import countStoryResults from "@/mixins/countStoryResults"
 import formValidations from "@/mixins/formValidations"
 
-
-
 export default {
     name: "Account_Page",
     mixins: [countStoryResults, formValidations],
@@ -57,7 +55,7 @@ export default {
         return {
             menu: {
                 active: 'My Stories',
-                items: ['My Stories', 'My Sequences', 'Likes'],
+                items: ['My Stories', 'Likes'],
             },
             myStories: []
         }
@@ -74,8 +72,7 @@ export default {
         select(name) {
             this.menu.active = name;
         },
-    },  
-      
+    },
     created(){
         Stories.getStoryDefinitions( `where: {user:"${this.profile._id}"}` )
         .then(response => {

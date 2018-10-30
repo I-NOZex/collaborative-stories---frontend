@@ -2,6 +2,8 @@
 import { AUTH_REQUEST, AUTH_ERROR, AUTH_SUCCESS, AUTH_LOGOUT } from '../actions/auth'
 import { USER_REQUEST } from '../actions/user'
 import axios from "axios";
+import secrets from "@/secrets.json";
+
 
 const state = { token: localStorage.getItem('user-token') || '', status: '', hasLoadedOnce: false }
 const getters = {
@@ -15,25 +17,25 @@ const actions = {
         commit(AUTH_REQUEST)
 
         axios({
-            url: "http://127.0.0.1:1337/auth/local",
+            url: `${secrets.API_URL}/auth/local`,
             method: "post",
             timeout: 5000,
             data: user
-
-        }).then(resp => {
-            const token = resp.data.jwt
-            localStorage.setItem('user-token', token)
-            // Add the following line:
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            commit(AUTH_SUCCESS, resp)
-            dispatch(USER_REQUEST)
-            resolve(resp)
-
-        }).catch(err => {
-            commit(AUTH_ERROR, err)
-            localStorage.removeItem('user-token')
-            reject(err)
         })
+            .then(resp => {
+                const token = resp.data.jwt;
+                localStorage.setItem("user-token", token);
+                // Add the following line:
+                axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                commit(AUTH_SUCCESS, resp);
+                dispatch(USER_REQUEST);
+                resolve(resp);
+            })
+            .catch(err => {
+                commit(AUTH_ERROR, err);
+                localStorage.removeItem("user-token");
+                reject(err);
+            });
     })
   },
   [AUTH_LOGOUT]: ({commit, dispatch}) => {

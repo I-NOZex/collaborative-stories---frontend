@@ -24,6 +24,26 @@ const ifAuthenticated = (to, from, next) => {
         return
     }
     next("/knock-knock");
+}   
+
+const userProfileLoaded = (to, from, next) => {
+    function proceed(){
+        if (store.getters.isProfileLoaded)
+            next()
+    }
+
+    if(!store.getters.isProfileLoaded){
+        store.watch(
+            (state) => !!state.user.profile.username, // = getters.isProfileLoaded
+            (value) => {
+                if(value === true){
+                    proceed()
+                }
+            }
+        )
+    } else {
+        proceed()
+    }
 }
 
 export default new Router({
@@ -53,7 +73,7 @@ export default new Router({
             name: "Account_Page",
             component: Account_Page,
             props: true,
-            beforeEnter: ifAuthenticated
+            beforeEnter: ifAuthenticated && userProfileLoaded
         }
     ]
 });
