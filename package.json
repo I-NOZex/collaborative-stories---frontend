@@ -5,7 +5,7 @@
   "author": "Tiago Marques <simplesmente_moi@hotmail.com>",
   "private": true,
   "scripts": {
-    "dev": "set HOST=127.0.0.1&&webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
+    "dev": "set HOST=192.168.0.101&&webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "dev2": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "start": "npm run dev",
     "build": "node build/build.js"

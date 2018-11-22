@@ -12,7 +12,9 @@ export default {
                         storydefinition(id: "${_id}") {
                             _id
                             title
-                            likes
+                            likes {
+                                _id
+                            }                            
                             createdAt
                             user {
                                 username
@@ -23,8 +25,7 @@ export default {
                             _id
                             storyBody
                             createdAt
-                            order
-                            likes
+                            order                         
                             user {
                                 username
                             }
@@ -47,7 +48,9 @@ export default {
                             _id
                             title
                             createdAt
-                            likes
+                            likes {
+                                _id
+                            }
                             user {
                                 username
                             }
@@ -91,5 +94,14 @@ export default {
             data: _payload
         });
     },
+
+    updateStoryDefinitionLikes(_id, _payload){
+        return axios({
+            url: `${secrets.API_URL}/storydefinition/${_id}`,
+            method: "put",
+            timeout: 5000,
+            data: _payload
+        });
+    }
 
 };
